@@ -98,7 +98,7 @@ export class TestRail {
       for (const r of runs) {
         this.suites.forEach(s => {
           if (s.id === r.suite_id) {
-            s.runId = r.id;
+            s.runId = r.runs[0].id;
           }
         });
       }

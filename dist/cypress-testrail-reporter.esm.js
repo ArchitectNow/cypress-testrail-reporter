@@ -168,7 +168,7 @@ function () {
 
                 _this2.suites.forEach(function (s) {
                   if (s.id === r.suite_id) {
-                    s.runId = r.id;
+                    s.runId = r.runs[0].id;
                   }
                 });
               };

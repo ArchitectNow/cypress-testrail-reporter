@@ -33,6 +33,7 @@ export interface Entry {
     id: number;
     name: string;
     suite_id: number;
+    runs: Plan[];
 }
 export interface Plan {
     assignedto_id: number | null;
