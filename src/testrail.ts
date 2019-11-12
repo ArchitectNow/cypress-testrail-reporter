@@ -78,11 +78,13 @@ export class TestRail {
   public async constructSuites(): Promise<void> {
     try {
       const suiteResponse = await this.axiosInstance.get<Suite[]>(`/get_suites/${this.projectId}`);
-      const suites = suiteResponse.data.sort((a, b) => {
-        if (a.name > b.name) return 1;
-        if (a.name < b.name) return -1;
-        return 0;
-      });
+      const suites = suiteResponse.data
+        .filter(s => !s.name.includes('Master'))
+        .sort((a, b) => {
+          if (a.name > b.name) return 1;
+          if (a.name < b.name) return -1;
+          return 0;
+        });
 
       for (const s of suites) {
         this.suites.push(new ReporterSuite(s.id, s.name, s.description));
@@ -91,26 +93,21 @@ export class TestRail {
       const planResponse = await this.axiosInstance.get<Plan>(`/get_plan/${this.planId}`);
       const plan = planResponse.data;
 
+      let runs: Plan[] = [];
       if (plan.entries && plan.entries.length) {
-        for (const r of plan.entries) {
-          this.suites.forEach(s => {
-            if (s.id === r.suite_id) {
-              s.runId = r.runs[0].id;
-            }
-          });
-        }
+        runs = TestRail.flat(plan.entries.map(e => e.runs));
       } else {
-        const response = await this.createRuns();
-        const runs = TestRail.flat(response.map(r => r.data.entries as Entry[]));
-        for (const r of runs) {
-          this.suites.forEach(s => {
-            if (s.id === r.suite_id) {
-              s.runId = r.runs[0].id;
-            }
-          });
-        }
+        const response = (await this.createRuns()) as Plan[][];
+        runs = TestRail.flat(response);
       }
 
+      for (const r of runs) {
+        this.suites.forEach(s => {
+          if (s.id === r.suite_id) {
+            s.runId = r.id;
+          }
+        });
+      }
       await this.getCases();
     } catch (e) {
       console.log(chalk.redBright.underline.bold('Internal error', e));
@@ -149,14 +146,14 @@ export class TestRail {
 
   private async createRuns() {
     const createRunPromises = this.suites.map(s => {
-      return this.axiosInstance.post<Plan>(`/add_plan_entry/${this.planId}`, {
+      return this.axiosInstance.post<Entry>(`/add_plan_entry/${this.planId}`, {
         suite_id: s.id,
         name: s.name,
         description: s.description + ' ' + this.today,
       });
     });
 
-    return Promise.all(createRunPromises);
+    return Promise.all(createRunPromises).then(r => r.map(s => s.data.runs));
   }
 
   private async getCases() {

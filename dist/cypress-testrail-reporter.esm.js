@@ -133,7 +133,9 @@ function () {
 
       var _temp4 = _catch(function () {
         return Promise.resolve(_this2.axiosInstance.get("/get_suites/" + _this2.projectId)).then(function (suiteResponse) {
-          var suites = suiteResponse.data.sort(function (a, b) {
+          var suites = suiteResponse.data.filter(function (s) {
+            return !s.name.includes('Master');
+          }).sort(function (a, b) {
             if (a.name > b.name) return 1;
             if (a.name < b.name) return -1;
             return 0;
@@ -158,71 +160,47 @@ function () {
 
           return Promise.resolve(_this2.axiosInstance.get("/get_plan/" + _this2.planId)).then(function (planResponse) {
             function _temp2() {
+              var _loop = function _loop() {
+                if (_isArray2) {
+                  if (_i2 >= _iterator2.length) return "break";
+                  _ref2 = _iterator2[_i2++];
+                } else {
+                  _i2 = _iterator2.next();
+                  if (_i2.done) return "break";
+                  _ref2 = _i2.value;
+                }
+
+                var r = _ref2;
+
+                _this2.suites.forEach(function (s) {
+                  if (s.id === r.suite_id) {
+                    s.runId = r.id;
+                  }
+                });
+              };
+
+              for (var _iterator2 = runs, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+                var _ref2;
+
+                var _ret = _loop();
+
+                if (_ret === "break") break;
+              }
+
               return Promise.resolve(_this2.getCases()).then(function () {});
             }
 
             var plan = planResponse.data;
+            var runs = [];
 
             var _temp = function () {
               if (plan.entries && plan.entries.length) {
-                var _loop = function _loop() {
-                  if (_isArray2) {
-                    if (_i2 >= _iterator2.length) return "break";
-                    _ref2 = _iterator2[_i2++];
-                  } else {
-                    _i2 = _iterator2.next();
-                    if (_i2.done) return "break";
-                    _ref2 = _i2.value;
-                  }
-
-                  var r = _ref2;
-
-                  _this2.suites.forEach(function (s) {
-                    if (s.id === r.suite_id) {
-                      s.runId = r.runs[0].id;
-                    }
-                  });
-                };
-
-                for (var _iterator2 = plan.entries, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-                  var _ref2;
-
-                  var _ret = _loop();
-
-                  if (_ret === "break") break;
-                }
+                runs = TestRail.flat(plan.entries.map(function (e) {
+                  return e.runs;
+                }));
               } else {
                 return Promise.resolve(_this2.createRuns()).then(function (response) {
-                  var runs = TestRail.flat(response.map(function (r) {
-                    return r.data.entries;
-                  }));
-
-                  var _loop2 = function _loop2() {
-                    if (_isArray3) {
-                      if (_i3 >= _iterator3.length) return "break";
-                      _ref3 = _iterator3[_i3++];
-                    } else {
-                      _i3 = _iterator3.next();
-                      if (_i3.done) return "break";
-                      _ref3 = _i3.value;
-                    }
-
-                    var r = _ref3;
-
-                    _this2.suites.forEach(function (s) {
-                      if (s.id === r.suite_id) {
-                        s.runId = r.runs[0].id;
-                      }
-                    });
-                  };
-
-                  for (var _iterator3 = runs, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-                    var _ref3;
-
-                    var _ret2 = _loop2();
-
-                    if (_ret2 === "break") break;
-                  }
+                  runs = TestRail.flat(response);
                 });
               }
             }();
@@ -246,9 +224,9 @@ function () {
 
       var constructedResults = _this4.constructTestResult();
 
-      var addResultPromises = Object.entries(constructedResults).map(function (_ref4) {
-        var runId = _ref4[0],
-            results = _ref4[1];
+      var addResultPromises = Object.entries(constructedResults).map(function (_ref3) {
+        var runId = _ref3[0],
+            results = _ref3[1];
         return _this4.axiosInstance.post("/add_results_for_cases/" + runId, {
           results: results
         });
@@ -291,7 +269,11 @@ function () {
         });
       });
 
-      return Promise.all(createRunPromises);
+      return Promise.all(createRunPromises).then(function (r) {
+        return r.map(function (s) {
+          return s.data.runs;
+        });
+      });
     } catch (e) {
       return Promise.reject(e);
     }
@@ -310,17 +292,17 @@ function () {
           return cr.data;
         }));
 
-        var _loop3 = function _loop3() {
-          if (_isArray4) {
-            if (_i4 >= _iterator4.length) return "break";
-            _ref5 = _iterator4[_i4++];
+        var _loop2 = function _loop2() {
+          if (_isArray3) {
+            if (_i3 >= _iterator3.length) return "break";
+            _ref4 = _iterator3[_i3++];
           } else {
-            _i4 = _iterator4.next();
-            if (_i4.done) return "break";
-            _ref5 = _i4.value;
+            _i3 = _iterator3.next();
+            if (_i3.done) return "break";
+            _ref4 = _i3.value;
           }
 
-          var c = _ref5;
+          var c = _ref4;
 
           _this8.suites.forEach(function (s) {
             if (s.id === c.suite_id) {
@@ -329,12 +311,12 @@ function () {
           });
         };
 
-        for (var _iterator4 = cases, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-          var _ref5;
+        for (var _iterator3 = cases, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+          var _ref4;
 
-          var _ret3 = _loop3();
+          var _ret2 = _loop2();
 
-          if (_ret3 === "break") break;
+          if (_ret2 === "break") break;
         }
       });
     } catch (e) {
