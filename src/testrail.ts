@@ -92,7 +92,7 @@ export class TestRail {
         runs = plan.entries;
       } else {
         const response = await this.createRuns();
-        runs = response.map(r => r.data.entries as Entry[]).flat();
+        runs = TestRail.flat(response.map(r => r.data.entries as Entry[]));
       }
 
       for (const r of runs) {
@@ -158,7 +158,7 @@ export class TestRail {
     });
 
     const casesResponse = await Promise.all(getCasesPromises);
-    const cases = casesResponse.map(cr => cr.data).flat();
+    const cases = TestRail.flat(casesResponse.map(cr => cr.data));
 
     for (const c of cases) {
       this.suites.forEach(s => {
@@ -167,5 +167,9 @@ export class TestRail {
         }
       });
     }
+  }
+
+  private static flat<T>(arr: T[][]): T[] {
+    return arr.reduce((acc, cur) => acc.concat(cur), []);
   }
 }
