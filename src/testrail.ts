@@ -32,7 +32,7 @@ export class TestRail {
   private suites: ReporterSuite[] = [];
   private testResults: TestRailResult[] = [];
 
-  constructor(options: TestRailOptions) {
+  constructor(private options: TestRailOptions) {
     this.axiosInstance = axios.create({
       baseURL: `https://${options.domain}/index.php?/api/v2`,
       headers: { 'Content-Type': 'application/json' },
@@ -78,7 +78,11 @@ export class TestRail {
   public async constructSuites(): Promise<void> {
     try {
       const suiteResponse = await this.axiosInstance.get<Suite[]>(`/get_suites/${this.projectId}`);
-      const suites = suiteResponse.data;
+      const suites = suiteResponse.data.sort((a, b) => {
+        if (a.name > b.name) return 1;
+        if (a.name < b.name) return -1;
+        return 0;
+      });
 
       for (const s of suites) {
         this.suites.push(new ReporterSuite(s.id, s.name, s.description));
@@ -86,21 +90,25 @@ export class TestRail {
 
       const planResponse = await this.axiosInstance.get<Plan>(`/get_plan/${this.planId}`);
       const plan = planResponse.data;
-      let runs: Entry[];
 
       if (plan.entries && plan.entries.length) {
-        runs = plan.entries;
+        for (const r of plan.entries) {
+          this.suites.forEach(s => {
+            if (s.id === r.suite_id) {
+              s.runId = r.runs[0].id;
+            }
+          });
+        }
       } else {
         const response = await this.createRuns();
-        runs = TestRail.flat(response.map(r => r.data.entries as Entry[]));
-      }
-
-      for (const r of runs) {
-        this.suites.forEach(s => {
-          if (s.id === r.suite_id) {
-            s.runId = r.runs[0].id;
-          }
-        });
+        const runs = TestRail.flat(response.map(r => r.data.entries as Entry[]));
+        for (const r of runs) {
+          this.suites.forEach(s => {
+            if (s.id === r.suite_id) {
+              s.runId = r.runs[0].id;
+            }
+          });
+        }
       }
 
       await this.getCases();
@@ -109,13 +117,21 @@ export class TestRail {
     }
   }
 
-  public publish() {
+  public async publish() {
     const constructedResults = this.constructTestResult();
     const addResultPromises = Object.entries(constructedResults).map(([runId, results]) => {
       return this.axiosInstance.post(`/add_results_for_cases/${runId}`, { results });
     });
 
-    return Promise.all(addResultPromises);
+    await Promise.all(addResultPromises);
+    console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
+    console.log(
+      '\n',
+      ` - Results are published to ${chalk.magenta(
+        `https://${this.options.domain}/index.php?/runs/plan/${this.planId}`,
+      )}`,
+      '\n',
+    );
   }
 
   private constructTestResult(): ConstructedTestResult {

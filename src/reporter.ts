@@ -6,13 +6,12 @@ import { titleToCaseId } from './utils';
 
 class CypressTestrailReporter extends reporters.Base {
   private readonly testRail: TestRail;
-  private readonly reporterOptions: TestRailOptions;
 
   constructor(runner: Mocha.Runner, options: Mocha.MochaOptions) {
     super(runner, options);
-    this.reporterOptions = options.reporterOptions as TestRailOptions;
-    CypressTestrailReporter.validate(this.reporterOptions);
-    this.testRail = new TestRail(this.reporterOptions);
+    const reporterOptions = options.reporterOptions as TestRailOptions;
+    CypressTestrailReporter.validate(reporterOptions);
+    this.testRail = new TestRail(reporterOptions);
     this.report();
   }
 
@@ -41,19 +40,7 @@ class CypressTestrailReporter extends reporters.Base {
       return;
     }
 
-    this.testRail
-      .publish()
-      .then(() => {
-        console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
-        console.log(
-          '\n',
-          ` - Results are published to ${chalk.magenta(
-            `https://${this.reporterOptions.domain}/index.php?/runs/plan/${this.reporterOptions.planId}`,
-          )}`,
-          '\n',
-        );
-      })
-      .catch(console.error);
+    this.testRail.publish().catch(console.error);
   };
 
   private static validate(options: TestRailOptions) {
