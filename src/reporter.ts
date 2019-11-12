@@ -4,7 +4,7 @@ import { TestRail } from './testrail';
 import { TestRailOptions } from './testrail.interface';
 import { titleToCaseId } from './utils';
 
-export default class CypressTestrailReporter extends reporters.Base {
+class CypressTestrailReporter extends reporters.Base {
   private readonly testRail: TestRail;
 
   constructor(runner: Mocha.Runner, options: Mocha.MochaOptions) {
@@ -61,3 +61,5 @@ export default class CypressTestrailReporter extends reporters.Base {
     }
   }
 }
+
+module.exports = CypressTestrailReporter;
