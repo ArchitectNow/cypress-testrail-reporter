@@ -32,7 +32,7 @@ export class TestRail {
   private suites: ReporterSuite[] = [];
   private testResults: TestRailResult[] = [];
 
-  constructor(private options: TestRailOptions) {
+  constructor(options: TestRailOptions) {
     this.axiosInstance = axios.create({
       baseURL: `https://${options.domain}/index.php?/api/v2`,
       headers: { 'Content-Type': 'application/json' },
@@ -115,16 +115,7 @@ export class TestRail {
       return this.axiosInstance.post(`/add_results_for_cases/${runId}`, { results });
     });
 
-    Promise.all(addResultPromises).then(() => {
-      console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
-      console.log(
-        '\n',
-        ` - Results are published to ${chalk.magenta(
-          `https://${this.options.domain}/index.php?/runs/plan/${this.planId}`,
-        )}`,
-        '\n',
-      );
-    });
+    return Promise.all(addResultPromises);
   }
 
   private constructTestResult(): ConstructedTestResult {

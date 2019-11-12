@@ -81,7 +81,6 @@ var TestRail =
 /*#__PURE__*/
 function () {
   function TestRail(options) {
-    this.options = options;
     this.suites = [];
     this.testResults = [];
     this.axiosInstance = axios.create({
@@ -223,10 +222,7 @@ function () {
         results: results
       });
     });
-    Promise.all(addResultPromises).then(function () {
-      console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
-      console.log('\n', " - Results are published to " + chalk.magenta("https://" + _this3.options.domain + "/index.php?/runs/plan/" + _this3.planId), '\n');
-    });
+    return Promise.all(addResultPromises);
   };
 
   _proto.constructTestResult = function constructTestResult() {
@@ -364,12 +360,15 @@ function (_reporters$Base) {
         return;
       }
 
-      _this.testRail.publish();
+      _this.testRail.publish().then(function () {
+        console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
+        console.log('\n', " - Results are published to " + chalk.magenta("https://" + _this.reporterOptions.domain + "/index.php?/runs/plan/" + _this.reporterOptions.planId), '\n');
+      })["catch"](console.error);
     };
 
-    var reporterOptions = options.reporterOptions;
-    CypressTestrailReporter.validate(reporterOptions);
-    _this.testRail = new TestRail(reporterOptions);
+    _this.reporterOptions = options.reporterOptions;
+    CypressTestrailReporter.validate(_this.reporterOptions);
+    _this.testRail = new TestRail(_this.reporterOptions);
 
     _this.report();
 
