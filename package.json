@@ -1,6 +1,6 @@
 {
   "name": "@architectnow/cypress-testrail-reporter",
-  "version": "0.1.0",
+  "version": "0.0.0-development",
   "license": "MIT",
   "author": "Chau Tran",
   "main": "dist/index.js",
@@ -9,16 +9,20 @@
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArchitectNow/cypress-testrail-reporter.git"
+  },
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "test": "tsdx test",
-    "lint": "tsdx lint"
+    "lint": "tsdx lint src && lint-staged",
+    "commit": "git-cz",
+    "semantic-release": "semantic-release"
   },
-  "peerDependencies": {},
   "husky": {
     "hooks": {
-      "pre-commit": "tsdx lint"
+      "pre-commit": "npm run lint"
     }
   },
   "prettier": {
@@ -27,6 +31,22 @@
     "singleQuote": true,
     "trailingComma": "all"
   },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-conventional-changelog"
+    }
+  },
+  "lint-staged": {
+    "{src}/**/*.ts": [
+      "prettier --write",
+      "git add"
+    ]
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -34,6 +54,12 @@
     "@types/jest": "24.0.22",
     "@types/mocha": "5.2.7",
     "@types/node": "12.12.7",
+    "@commitlint/cli": "8.2.0",
+    "@commitlint/config-conventional": "8.2.0",
+    "commitizen": "4.0.3",
+    "cz-conventional-changelog": "3.0.2",
+    "lint-staged": "9.4.2",
+    "semantic-release": "^15.13.30",
     "husky": "3.0.9",
     "tsdx": "0.11.0",
     "tslib": "1.10.0",
