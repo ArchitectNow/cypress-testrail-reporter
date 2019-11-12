@@ -97,8 +97,7 @@ export class TestRail {
       if (plan.entries && plan.entries.length) {
         runs = TestRail.flat(plan.entries.map(e => e.runs));
       } else {
-        const response = (await this.createRuns()) as Plan[][];
-        runs = TestRail.flat(response);
+        runs = await this.createRuns();
       }
 
       for (const r of runs) {
@@ -145,15 +144,20 @@ export class TestRail {
   }
 
   private async createRuns() {
-    const createRunPromises = this.suites.map(s => {
-      return this.axiosInstance.post<Entry>(`/add_plan_entry/${this.planId}`, {
-        suite_id: s.id,
-        name: s.name,
-        description: s.description + ' ' + this.today,
-      });
-    });
+    let runs: Plan[] = [];
+    for (let i = 0; i < this.suites.length; i++) {
+      const suite = this.suites[i];
+      const run = await this.axiosInstance
+        .post<Entry>(`/add_plan_entry/${this.planId}`, {
+          suite_id: suite.id,
+          name: suite.name,
+          description: suite.description + ' ' + this.today,
+        })
+        .then(res => res.data.runs[0]);
+      runs.push(run);
+    }
 
-    return Promise.all(createRunPromises).then(r => r.map(s => s.data.runs));
+    return runs;
   }
 
   private async getCases() {
