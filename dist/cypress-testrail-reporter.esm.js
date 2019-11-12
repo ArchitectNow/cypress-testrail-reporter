@@ -41,10 +41,164 @@ function _objectWithoutPropertiesLoose(source, excluded) {
 }
 
 // A type of promise-like that resolves synchronously and supports only one observer
+const _Pact = /*#__PURE__*/(function() {
+	function _Pact() {}
+	_Pact.prototype.then = function(onFulfilled, onRejected) {
+		const result = new _Pact();
+		const state = this.s;
+		if (state) {
+			const callback = state & 1 ? onFulfilled : onRejected;
+			if (callback) {
+				try {
+					_settle(result, 1, callback(this.v));
+				} catch (e) {
+					_settle(result, 2, e);
+				}
+				return result;
+			} else {
+				return this;
+			}
+		}
+		this.o = function(_this) {
+			try {
+				const value = _this.v;
+				if (_this.s & 1) {
+					_settle(result, 1, onFulfilled ? onFulfilled(value) : value);
+				} else if (onRejected) {
+					_settle(result, 1, onRejected(value));
+				} else {
+					_settle(result, 2, value);
+				}
+			} catch (e) {
+				_settle(result, 2, e);
+			}
+		};
+		return result;
+	};
+	return _Pact;
+})();
+
+// Settles a pact synchronously
+function _settle(pact, state, value) {
+	if (!pact.s) {
+		if (value instanceof _Pact) {
+			if (value.s) {
+				if (state & 1) {
+					state = value.s;
+				}
+				value = value.v;
+			} else {
+				value.o = _settle.bind(null, pact, state);
+				return;
+			}
+		}
+		if (value && value.then) {
+			value.then(_settle.bind(null, pact, state), _settle.bind(null, pact, 2));
+			return;
+		}
+		pact.s = state;
+		pact.v = value;
+		const observer = pact.o;
+		if (observer) {
+			observer(pact);
+		}
+	}
+}
+
+function _isSettledPact(thenable) {
+	return thenable instanceof _Pact && thenable.s & 1;
+}
 
 const _iteratorSymbol = /*#__PURE__*/ typeof Symbol !== "undefined" ? (Symbol.iterator || (Symbol.iterator = Symbol("Symbol.iterator"))) : "@@iterator";
 
 const _asyncIteratorSymbol = /*#__PURE__*/ typeof Symbol !== "undefined" ? (Symbol.asyncIterator || (Symbol.asyncIterator = Symbol("Symbol.asyncIterator"))) : "@@asyncIterator";
+
+// Asynchronously implement a generic for loop
+function _for(test, update, body) {
+	var stage;
+	for (;;) {
+		var shouldContinue = test();
+		if (_isSettledPact(shouldContinue)) {
+			shouldContinue = shouldContinue.v;
+		}
+		if (!shouldContinue) {
+			return result;
+		}
+		if (shouldContinue.then) {
+			stage = 0;
+			break;
+		}
+		var result = body();
+		if (result && result.then) {
+			if (_isSettledPact(result)) {
+				result = result.s;
+			} else {
+				stage = 1;
+				break;
+			}
+		}
+		if (update) {
+			var updateValue = update();
+			if (updateValue && updateValue.then && !_isSettledPact(updateValue)) {
+				stage = 2;
+				break;
+			}
+		}
+	}
+	var pact = new _Pact();
+	var reject = _settle.bind(null, pact, 2);
+	(stage === 0 ? shouldContinue.then(_resumeAfterTest) : stage === 1 ? result.then(_resumeAfterBody) : updateValue.then(_resumeAfterUpdate)).then(void 0, reject);
+	return pact;
+	function _resumeAfterBody(value) {
+		result = value;
+		do {
+			if (update) {
+				updateValue = update();
+				if (updateValue && updateValue.then && !_isSettledPact(updateValue)) {
+					updateValue.then(_resumeAfterUpdate).then(void 0, reject);
+					return;
+				}
+			}
+			shouldContinue = test();
+			if (!shouldContinue || (_isSettledPact(shouldContinue) && !shouldContinue.v)) {
+				_settle(pact, 1, result);
+				return;
+			}
+			if (shouldContinue.then) {
+				shouldContinue.then(_resumeAfterTest).then(void 0, reject);
+				return;
+			}
+			result = body();
+			if (_isSettledPact(result)) {
+				result = result.v;
+			}
+		} while (!result || !result.then);
+		result.then(_resumeAfterBody).then(void 0, reject);
+	}
+	function _resumeAfterTest(shouldContinue) {
+		if (shouldContinue) {
+			result = body();
+			if (result && result.then) {
+				result.then(_resumeAfterBody).then(void 0, reject);
+			} else {
+				_resumeAfterBody(result);
+			}
+		} else {
+			_settle(pact, 1, result);
+		}
+	}
+	function _resumeAfterUpdate() {
+		if (shouldContinue = test()) {
+			if (shouldContinue.then) {
+				shouldContinue.then(_resumeAfterTest).then(void 0, reject);
+			} else {
+				_resumeAfterTest(shouldContinue);
+			}
+		} else {
+			_settle(pact, 1, result);
+		}
+	}
+}
 
 // Asynchronously call a function and send errors to recovery continuation
 function _catch(body, recover) {
@@ -199,8 +353,8 @@ function () {
                   return e.runs;
                 }));
               } else {
-                return Promise.resolve(_this2.createRuns()).then(function (response) {
-                  runs = TestRail.flat(response);
+                return Promise.resolve(_this2.createRuns()).then(function (_this$createRuns) {
+                  runs = _this$createRuns;
                 });
               }
             }();
@@ -261,19 +415,29 @@ function () {
     try {
       var _this6 = this;
 
-      var createRunPromises = _this6.suites.map(function (s) {
-        return _this6.axiosInstance.post("/add_plan_entry/" + _this6.planId, {
-          suite_id: s.id,
-          name: s.name,
-          description: s.description + ' ' + _this6.today
+      var _runs = [];
+      var _i3 = 0;
+
+      var _temp6 = _for(function () {
+        return _i3 < _this6.suites.length;
+      }, function () {
+        return _i3++;
+      }, function () {
+        var suite = _this6.suites[_i3];
+        return Promise.resolve(_this6.axiosInstance.post("/add_plan_entry/" + _this6.planId, {
+          suite_id: suite.id,
+          name: suite.name,
+          description: suite.description + ' ' + _this6.today
+        }).then(function (res) {
+          return res.data.runs[0];
+        })).then(function (run) {
+          _runs.push(run);
         });
       });
 
-      return Promise.all(createRunPromises).then(function (r) {
-        return r.map(function (s) {
-          return s.data.runs;
-        });
-      });
+      return Promise.resolve(_temp6 && _temp6.then ? _temp6.then(function () {
+        return _runs;
+      }) : _runs);
     } catch (e) {
       return Promise.reject(e);
     }
@@ -294,12 +458,12 @@ function () {
 
         var _loop2 = function _loop2() {
           if (_isArray3) {
-            if (_i3 >= _iterator3.length) return "break";
-            _ref4 = _iterator3[_i3++];
+            if (_i4 >= _iterator3.length) return "break";
+            _ref4 = _iterator3[_i4++];
           } else {
-            _i3 = _iterator3.next();
-            if (_i3.done) return "break";
-            _ref4 = _i3.value;
+            _i4 = _iterator3.next();
+            if (_i4.done) return "break";
+            _ref4 = _i4.value;
           }
 
           var c = _ref4;
@@ -311,7 +475,7 @@ function () {
           });
         };
 
-        for (var _iterator3 = cases, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+        for (var _iterator3 = cases, _isArray3 = Array.isArray(_iterator3), _i4 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
           var _ref4;
 
           var _ret2 = _loop2();
