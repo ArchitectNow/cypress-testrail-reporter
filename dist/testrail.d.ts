@@ -18,4 +18,5 @@ export declare class TestRail {
     private findRunIdForCase;
     private createRuns;
     private getCases;
+    private static flat;
 }

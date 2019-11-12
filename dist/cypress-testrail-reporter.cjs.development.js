@@ -196,9 +196,9 @@ function () {
                 runs = plan.entries;
               } else {
                 return Promise.resolve(_this2.createRuns()).then(function (response) {
-                  runs = response.map(function (r) {
+                  runs = TestRail.flat(response.map(function (r) {
                     return r.data.entries;
-                  }).flat();
+                  }));
                 });
               }
             }();
@@ -277,9 +277,9 @@ function () {
       });
 
       return Promise.resolve(Promise.all(getCasesPromises)).then(function (casesResponse) {
-        var cases = casesResponse.map(function (cr) {
+        var cases = TestRail.flat(casesResponse.map(function (cr) {
           return cr.data;
-        }).flat();
+        }));
 
         var _loop2 = function _loop2() {
           if (_isArray3) {
@@ -311,6 +311,12 @@ function () {
     } catch (e) {
       return Promise.reject(e);
     }
+  };
+
+  TestRail.flat = function flat(arr) {
+    return arr.reduce(function (acc, cur) {
+      return acc.concat(cur);
+    }, []);
   };
 
   _createClass(TestRail, [{
