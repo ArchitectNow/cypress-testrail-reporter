@@ -401,6 +401,4 @@ function (_reporters$Base) {
 
   return CypressTestrailReporter;
 }(reporters.Base);
-
-export { CypressTestrailReporter };
 //# sourceMappingURL=cypress-testrail-reporter.esm.js.map

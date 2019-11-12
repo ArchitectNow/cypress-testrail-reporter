@@ -405,6 +405,4 @@ function (_reporters$Base) {
 
   return CypressTestrailReporter;
 }(mocha.reporters.Base);
-
-exports.CypressTestrailReporter = CypressTestrailReporter;
 //# sourceMappingURL=cypress-testrail-reporter.cjs.development.js.map
