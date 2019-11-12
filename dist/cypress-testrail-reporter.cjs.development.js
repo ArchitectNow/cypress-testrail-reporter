@@ -362,10 +362,6 @@ function (_reporters$Base) {
     };
 
     _this.handleEnd = function () {
-      _this.runner.off('fail', _this.handleTest('fail'));
-
-      _this.runner.off('pass', _this.handleTest('pass'));
-
       if (!_this.testRail.results.length) {
         console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
         console.warn('\n', 'No testcases were matched. Ensure that your tests are declared correctly and matches Cxxx', '\n');
@@ -373,8 +369,6 @@ function (_reporters$Base) {
       }
 
       _this.testRail.publish();
-
-      _this.runner.off('end', _this.handleEnd);
     };
 
     var reporterOptions = options.reporterOptions;

@@ -30,9 +30,6 @@ class CypressTestrailReporter extends reporters.Base {
   };
 
   private handleEnd = () => {
-    this.runner.off('fail', this.handleTest('fail'));
-    this.runner.off('pass', this.handleTest('pass'));
-
     if (!this.testRail.results.length) {
       console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
       console.warn(
@@ -44,7 +41,6 @@ class CypressTestrailReporter extends reporters.Base {
     }
 
     this.testRail.publish();
-    this.runner.off('end', this.handleEnd);
   };
 
   private static validate(options: TestRailOptions) {
