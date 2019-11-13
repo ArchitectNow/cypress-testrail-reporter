@@ -23,7 +23,7 @@ We would recommend you to get familiar with [Using Reporter in Cypress](https://
 
 1. Use `@architectnow/cypress-testrail-reporter` in `cypress.json`
 
-```json
+```typescript
 {
   "reporter": "@architectnow/cypress-testrail-reporter"
 }
@@ -31,7 +31,7 @@ We would recommend you to get familiar with [Using Reporter in Cypress](https://
 
 2. Provide `reporterOptions`
 
-```json
+```typescript
 {
   "reporter": "@architectnow/cypress-testrail-reporter",
   "reporterOptions": {
@@ -58,7 +58,7 @@ If you want to use Multi Reporters with Cypress, consider using `cypress-multi-r
 npm i -D cypress-multi-reporters
 ```
 
-```json
+```typescript
 // cypress.json
 {
   "reporter": "cypress-multi-reporters",
@@ -80,4 +80,7 @@ npm i -D cypress-multi-reporters
 }
 ```
 
-
+### Credits
+* [Pierre Awaragi](https://github.com/awaragi), owner of the [mocha-testrail-reporter](https://github.com/awaragi/mocha-testrail-reporter) repository that was forked.
+* [Valerie Thoma](https://github.com/ValerieThoma) and [Aileen Santos](https://github.com/asantos3026) for proofreading the README.md file and making it more understandable.
+* [Vivify Ideas](https://github.com/Vivify-Ideas) for the `cypress-testrail-reporter` repo. 
