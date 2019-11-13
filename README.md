@@ -1,5 +1,7 @@
 # @architectnow/cypress-testrail-reporter
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/ArchitectNow/cypress-testrail-reporter.svg)](https://greenkeeper.io/)
+
 A Reporter that will push **Test Results** automatically to **TestRail**. This package is tailored specifically to work with our **Test Management** strategy by creating **Test Plans**, add **Test Runs** (for each **Suite**) to the **Plan** then publish **Results** (based on **Cases**) to the **Runs**
 
 Manual steps required: Create a Test Plan periodically. We create a Test Plan for each environment at the beginning of each Sprint. Then get a hold of that `PlanId`. Using the `PlanId` and `ProjectId`, the Reporter will fetch all **Suites** and **Cases** from the **Project** then create a **Run** for each **Suite** then publish **Results** appropriately.
