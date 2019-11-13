@@ -1,27 +1,81 @@
-# TSDX Bootstrap
+# @architectnow/cypress-testrail-reporter
 
-This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
+A Reporter that will push **Test Results** automatically to **TestRail**. This package is tailored specifically to work with our **Test Management** strategy by creating **Test Plans**, add **Test Runs** (for each **Suite**) to the **Plan** then publish **Results** (based on **Cases**) to the **Runs**
 
-## Local Development
+Manual steps required: Create a Test Plan periodically. We create a Test Plan for each environment at the beginning of each Sprint. Then get a hold of that `PlanId`. Using the `PlanId` and `ProjectId`, the Reporter will fetch all **Suites** and **Cases** from the **Project** then create a **Run** for each **Suite** then publish **Results** appropriately.
 
-Below is a list of commands you will probably find useful.
+### Install
 
-### `npm start` or `yarn start`
+```
+npm i -D @architectnow/cypress-testrail-reporter
+```
+or
 
-Runs the project in development/watch mode. Your project will be rebuilt upon changes. TSDX has a special logger for you convenience. Error messages are pretty printed and formatted for compatibility VS Code's Problems tab.
+```
+yarn add --dev @architectnow/cypress-testrail-reporter
+```
 
-<img src="https://user-images.githubusercontent.com/4060187/52168303-574d3a00-26f6-11e9-9f3b-71dbec9ebfcb.gif" width="600" />
+### Configuration
 
-Your library will be rebuilt if you make edits.
+We would recommend you to get familiar with [Using Reporter in Cypress](https://docs.cypress.io/guides/tooling/reporters.html). 
 
-### `npm run build` or `yarn build`
+1. Use `@architectnow/cypress-testrail-reporter` in `cypress.json`
 
-Bundles the package to the `dist` folder.
-The package is optimized and bundled with Rollup into multiple formats (CommonJS, UMD, and ES Module).
+```json
+{
+  "reporter": "@architectnow/cypress-testrail-reporter"
+}
+```
 
-<img src="https://user-images.githubusercontent.com/4060187/52168322-a98e5b00-26f6-11e9-8cf6-222d716b75ef.gif" width="600" />
+2. Provide `reporterOptions`
 
-### `npm test` or `yarn test`
+```json
+{
+  "reporter": "@architectnow/cypress-testrail-reporter",
+  "reporterOptions": {
+    "domain": string // Your TestRail domain
+    "username": string // Your TestRail username
+    "password": string // Your Testrail password
+    "projectId": number,
+    "planId": number
+  }
+}
+```
 
-Runs the test watcher (Jest) in an interactive mode.
-By default, runs tests related to files changed since the last commit.
+3. Follow the convention of writing test cases from the original `cypress-testrail-reporter` [https://github.com/Vivify-Ideas/cypress-testrail-reporter](https://github.com/Vivify-Ideas/cypress-testrail-reporter)
+
+### Authentication note
+
+We would recommend that you create a generic account for your Test Rail domain to be used by the Reporter so that Test Results aren't bound to anyone specific. Also use API Key instead of using `password`.
+
+### Usage with `cypress-multi-reporters`
+
+If you want to use Multi Reporters with Cypress, consider using `cypress-multi-reporters` because it's actively maintained. Setup as follow:
+
+```
+npm i -D cypress-multi-reporters
+```
+
+```json
+// cypress.json
+{
+  "reporter": "cypress-multi-reporters",
+  "reporterOptions": {
+    "configFile": "path/to/configFile.json"
+  } 
+}
+
+// configFile.json
+{
+  "reporterEnabled": "@architectnow/cypress-testrail-reporter, some-other-reporter",
+  "architectnowCypressTestrailReporterReporterOptions": {
+    "domain": string // Your TestRail domain
+    "username": string // Your TestRail username
+    "password": string // Your Testrail password
+    "projectId": number,
+    "planId": number
+  }
+}
+```
+
+

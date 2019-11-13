@@ -13,6 +13,7 @@
     "type": "git",
     "url": "https://github.com/ArchitectNow/cypress-testrail-reporter.git"
   },
+  "keywords": ["cypress", "testrail", "reporter", "architectnow"],
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
