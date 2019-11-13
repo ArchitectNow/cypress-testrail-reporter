@@ -119,15 +119,19 @@ export class TestRail {
       return this.axiosInstance.post(`/add_results_for_cases/${runId}`, { results });
     });
 
-    await Promise.all(addResultPromises);
-    console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
-    console.log(
-      '\n',
-      ` - Results are published to ${chalk.magenta(
-        `https://${this.options.domain}/index.php?/runs/plan/${this.planId}`,
-      )}`,
-      '\n',
-    );
+    try {
+      await Promise.all(addResultPromises);
+      console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
+      console.log(
+        '\n',
+        ` - Results are published to ${chalk.magenta(
+          `https://${this.options.domain}/index.php?/runs/plan/${this.planId}`,
+        )}`,
+        '\n',
+      );
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   private constructTestResult(): ConstructedTestResult {

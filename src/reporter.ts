@@ -34,13 +34,13 @@ class CypressTestrailReporter extends reporters.Base {
       console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
       console.warn(
         '\n',
-        'No testcases were matched. Ensure that your tests are declared correctly and matches Cxxx',
+        'No test cases were matched. Ensure that your tests are declared correctly and matches CXXXX',
         '\n',
       );
       return;
     }
 
-    this.testRail.publish().catch(console.error);
+    this.testRail.publish();
   };
 
   private static validate(options: TestRailOptions) {
