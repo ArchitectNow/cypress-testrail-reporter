@@ -56,7 +56,7 @@
     "@types/mocha": "5.2.7",
     "@types/node": "13.1.1",
     "@commitlint/cli": "8.3.4",
-    "@commitlint/config-conventional": "8.2.0",
+    "@commitlint/config-conventional": "8.3.4",
     "commitizen": "4.0.3",
     "cz-conventional-changelog": "3.0.2",
     "lint-staged": "9.5.0",
