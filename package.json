@@ -61,7 +61,7 @@
     "cz-conventional-changelog": "3.0.2",
     "lint-staged": "9.5.0",
     "semantic-release": "^16.0.0",
-    "husky": "4.0.6",
+    "husky": "4.0.9",
     "tsdx": "0.12.2",
     "tslib": "1.10.0",
     "typescript": "3.7.2"
