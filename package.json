@@ -52,7 +52,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@types/jest": "24.0.25",
+    "@types/jest": "25.1.0",
     "@types/mocha": "5.2.7",
     "@types/node": "13.1.7",
     "@commitlint/cli": "8.3.5",
