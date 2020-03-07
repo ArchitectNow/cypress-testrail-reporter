@@ -1,6 +1,6 @@
 # @architectnow/cypress-testrail-reporter
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/ArchitectNow/cypress-testrail-reporter.svg)](https://greenkeeper.io/)
+
 
 A Reporter that will push **Test Results** automatically to **TestRail**. This package is tailored specifically to work with our **Test Management** strategy by creating **Test Plans**, add **Test Runs** (for each **Suite**) to the **Plan** then publish **Results** (based on **Cases**) to the **Runs**
 
