@@ -13,13 +13,20 @@
     "type": "git",
     "url": "https://github.com/ArchitectNow/cypress-testrail-reporter.git"
   },
-  "keywords": ["cypress", "testrail", "reporter", "architectnow"],
+  "keywords": [
+    "cypress",
+    "testrail",
+    "reporter",
+    "architectnow"
+  ],
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
     "lint": "tsdx lint src && lint-staged",
     "commit": "git-cz",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "snyk-protect": "snyk protect",
+    "prepare": "yarn run snyk-protect"
   },
   "husky": {
     "hooks": {
@@ -70,6 +77,8 @@
     "axios": "0.19.2",
     "chalk": "3.0.0",
     "date-fns": "2.11.1",
-    "mocha": "7.1.1"
-  }
+    "mocha": "7.1.1",
+    "snyk": "^1.316.2"
+  },
+  "snyk": true
 }
