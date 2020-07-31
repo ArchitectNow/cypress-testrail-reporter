@@ -1,1 +1,3 @@
-export * from './reporter';
+import CypressTestrailReporter from './reporter';
+
+export default CypressTestrailReporter;
