@@ -1,1 +1,3 @@
-export * from './reporter';
+import CypressTestrailReporter from './reporter';
+
+module.exports = CypressTestrailReporter;
