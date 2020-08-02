@@ -11,6 +11,14 @@ export default class CypressTestrailReporter extends reporters.Base {
     super(runner, options);
     const reporterOptions = options.reporterOptions as TestRailOptions;
     CypressTestrailReporter.validate(reporterOptions);
+
+    if (!reporterOptions.planId) {
+      throw new Error('Required option `planId` missing reporterOptions.');
+    }
+    if (!reporterOptions.projectId) {
+      throw new Error('Required option `projectId` missing reporterOptions.');
+    }
+
     this.testRail = new TestRail(reporterOptions);
     this.report();
   }
@@ -53,7 +61,7 @@ export default class CypressTestrailReporter extends reporters.Base {
         continue;
       }
 
-      throw new Error(`Missing ${key} value. Update repoterOptions`);
+      throw new Error(`Unknown ${key} value, please update your reporterOptions.`);
     }
   }
 }

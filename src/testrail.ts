@@ -54,12 +54,15 @@ export class TestRail {
   public addFailedTest(caseId: number, test: Mocha.Test) {
     const runId = this.findRunIdForCase(caseId);
     if (runId) {
+      console.log('- Add Failed Test: ', test.title);
       this.testResults.push({
         case_id: caseId,
         status_id: Status.Failed,
         run_id: runId,
         comment: (test.err as Error).message,
       });
+    } else {
+      console.warn('Could not find a Run ID for failed Test Case: ', caseId);
     }
   }
 
@@ -72,6 +75,8 @@ export class TestRail {
         run_id: runId,
         comment: `Execution time: ${test.duration}ms`,
       });
+    } else {
+      console.warn('Could not find a Run ID for passed Test Case: ', caseId);
     }
   }
 
@@ -90,13 +95,16 @@ export class TestRail {
         this.suites.push(new ReporterSuite(s.id, s.name, s.description));
       }
 
-      const planResponse = await this.axiosInstance.get<Plan>(`/get_plan/${this.planId}`);
-      const plan = planResponse.data;
-
       let runs: Plan[] = [];
-      if (plan.entries && plan.entries.length) {
-        runs = TestRail.flat(plan.entries.map(e => e.runs));
-      } else {
+      if (this.planId) {
+        const planResponse = await this.axiosInstance.get<Plan>(`/get_plan/${this.planId}`);
+        const plan = planResponse.data;
+        if (plan.entries && plan.entries.length) {
+          runs = TestRail.flat(plan.entries.map(e => e.runs));
+        }
+      }
+
+      if (!runs.length) {
         runs = await this.createRuns();
       }
 
@@ -107,6 +115,7 @@ export class TestRail {
           }
         });
       }
+
       await this.getCases();
     } catch (e) {
       console.log(chalk.redBright.underline.bold('Internal error', e));
