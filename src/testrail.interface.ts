@@ -3,7 +3,8 @@ export interface TestRailOptions {
   username: string;
   password: string;
   projectId: number;
-  planId: number;
+  planId?: number;
+  runId?: number;
 }
 
 export enum Status {
@@ -18,5 +19,6 @@ export interface TestRailResult {
   case_id: number;
   run_id: number;
   status_id: Status;
-  comment?: String;
+  elapsed: string | null;
+  comment?: string;
 }

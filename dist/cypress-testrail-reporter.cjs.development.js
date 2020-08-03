@@ -254,20 +254,23 @@ function () {
     });
     this.projectId = options.projectId;
     this.planId = options.planId;
+    this.runId = options.runId;
     this.today = dateFns.format(new Date().getTime(), 'yyyy/MM/dd');
   }
 
   var _proto = TestRail.prototype;
 
   _proto.addFailedTest = function addFailedTest(caseId, test) {
-    var runId = this.findRunIdForCase(caseId);
+    var runId = this.runId ? this.runId : this.findRunIdForCase(caseId);
 
     if (runId) {
       console.log('- Add Failed Test: ', test.title);
+      var elapsed = this.getElapsedFromTest(test);
       this.testResults.push({
         case_id: caseId,
         status_id: Status.Failed,
         run_id: runId,
+        elapsed: elapsed,
         comment: test.err.message
       });
     } else {
@@ -276,13 +279,15 @@ function () {
   };
 
   _proto.addPassedTest = function addPassedTest(caseId, test) {
-    var runId = this.findRunIdForCase(caseId);
+    var runId = this.runId ? this.runId : this.findRunIdForCase(caseId);
 
     if (runId) {
+      var elapsed = this.getElapsedFromTest(test);
       this.testResults.push({
         case_id: caseId,
         status_id: Status.Passed,
         run_id: runId,
+        elapsed: elapsed,
         comment: "Execution time: " + test.duration + "ms"
       });
     } else {
@@ -297,46 +302,7 @@ function () {
       var _temp6 = _catch(function () {
         return Promise.resolve(_this2.axiosInstance.get("/get_suites/" + _this2.projectId)).then(function (suiteResponse) {
           function _temp4() {
-            function _temp2() {
-              var _loop = function _loop() {
-                if (_isArray) {
-                  if (_i >= _iterator.length) return "break";
-                  _ref = _iterator[_i++];
-                } else {
-                  _i = _iterator.next();
-                  if (_i.done) return "break";
-                  _ref = _i.value;
-                }
-
-                var r = _ref;
-
-                _this2.suites.forEach(function (s) {
-                  if (s.id === r.suite_id) {
-                    s.runId = r.id;
-                  }
-                });
-              };
-
-              for (var _iterator = runs, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-                var _ref;
-
-                var _ret = _loop();
-
-                if (_ret === "break") break;
-              }
-
-              return Promise.resolve(_this2.getCases()).then(function () {});
-            }
-
-            var _temp = function () {
-              if (!runs.length) {
-                return Promise.resolve(_this2.createRuns()).then(function (_this$createRuns) {
-                  runs = _this$createRuns;
-                });
-              }
-            }();
-
-            return _temp && _temp.then ? _temp.then(_temp2) : _temp2(_temp);
+            return Promise.resolve(_this2.getCases()).then(function () {});
           }
 
           var suites = suiteResponse.data.filter(function (s) {
@@ -347,19 +313,19 @@ function () {
             return 0;
           });
 
-          for (var _iterator2 = suites, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-            var _ref2;
+          for (var _iterator = suites, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+            var _ref;
 
-            if (_isArray2) {
-              if (_i2 >= _iterator2.length) break;
-              _ref2 = _iterator2[_i2++];
+            if (_isArray) {
+              if (_i >= _iterator.length) break;
+              _ref = _iterator[_i++];
             } else {
-              _i2 = _iterator2.next();
-              if (_i2.done) break;
-              _ref2 = _i2.value;
+              _i = _iterator.next();
+              if (_i.done) break;
+              _ref = _i.value;
             }
 
-            var s = _ref2;
+            var s = _ref;
 
             _this2.suites.push(new ReporterSuite(s.id, s.name, s.description));
           }
@@ -369,6 +335,35 @@ function () {
           var _temp3 = function () {
             if (_this2.planId) {
               return Promise.resolve(_this2.axiosInstance.get("/get_plan/" + _this2.planId)).then(function (planResponse) {
+                function _temp2() {
+                  var _loop = function _loop() {
+                    if (_isArray2) {
+                      if (_i2 >= _iterator2.length) return "break";
+                      _ref2 = _iterator2[_i2++];
+                    } else {
+                      _i2 = _iterator2.next();
+                      if (_i2.done) return "break";
+                      _ref2 = _i2.value;
+                    }
+
+                    var r = _ref2;
+
+                    _this2.suites.forEach(function (s) {
+                      if (s.id === r.suite_id) {
+                        s.runId = r.id;
+                      }
+                    });
+                  };
+
+                  for (var _iterator2 = runs, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+                    var _ref2;
+
+                    var _ret = _loop();
+
+                    if (_ret === "break") break;
+                  }
+                }
+
                 var plan = planResponse.data;
 
                 if (plan.entries && plan.entries.length) {
@@ -376,6 +371,16 @@ function () {
                     return e.runs;
                   }));
                 }
+
+                var _temp = function () {
+                  if (!runs.length) {
+                    return Promise.resolve(_this2.createRuns()).then(function (_this$createRuns) {
+                      runs = _this$createRuns;
+                    });
+                  }
+                }();
+
+                return _temp && _temp.then ? _temp.then(_temp2) : _temp2(_temp);
               });
             }
           }();
@@ -409,7 +414,15 @@ function () {
       var _temp8 = _catch(function () {
         return Promise.resolve(Promise.all(addResultPromises)).then(function () {
           console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
-          console.log('\n', " - Results are published to " + chalk.magenta("https://" + _this4.options.domain + "/index.php?/runs/plan/" + _this4.planId), '\n');
+          var publishedLink;
+
+          if (_this4.planId) {
+            publishedLink = "https://" + _this4.options.domain + "/index.php?/plans/view/" + _this4.planId;
+          } else {
+            publishedLink = "https://" + _this4.options.domain + "/index.php?/runs/view/" + _this4.runId;
+          }
+
+          console.log('\n', " - Results are published to " + chalk.magenta(publishedLink), '\n');
         });
       }, function (e) {
         console.error(e);
@@ -419,6 +432,14 @@ function () {
     } catch (e) {
       return Promise.reject(e);
     }
+  };
+
+  _proto.getElapsedFromTest = function getElapsedFromTest(test) {
+    if (!test.duration) {
+      return null;
+    }
+
+    return Math.ceil(test.duration / 1000) + 's';
   };
 
   _proto.constructTestResult = function constructTestResult() {
@@ -442,7 +463,7 @@ function () {
     try {
       var _this6 = this;
 
-      var _runs = [];
+      var runs = [];
       var _i3 = 0;
 
       var _temp10 = _for(function () {
@@ -458,13 +479,13 @@ function () {
         }).then(function (res) {
           return res.data.runs[0];
         })).then(function (run) {
-          _runs.push(run);
+          runs.push(run);
         });
       });
 
       return Promise.resolve(_temp10 && _temp10.then ? _temp10.then(function () {
-        return _runs;
-      }) : _runs);
+        return runs;
+      }) : runs);
     } catch (e) {
       return Promise.reject(e);
     }
@@ -576,12 +597,12 @@ function (_reporters$Base) {
     var reporterOptions = options.reporterOptions;
     CypressTestrailReporter.validate(reporterOptions);
 
-    if (!reporterOptions.planId) {
-      throw new Error('Required option `planId` missing reporterOptions.');
+    if (!reporterOptions.planId && !reporterOptions.runId) {
+      throw new Error('CypressTestRailReporter requires either `planId` or `runId` to be configured.');
     }
 
     if (!reporterOptions.projectId) {
-      throw new Error('Required option `projectId` missing reporterOptions.');
+      throw new Error('CypressTestRailReporter required `projectId` to be configured.');
     }
 
     _this.testRail = new TestRail(reporterOptions);

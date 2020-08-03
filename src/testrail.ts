@@ -27,7 +27,8 @@ class ReporterSuite {
 export class TestRail {
   private axiosInstance: AxiosInstance;
   private readonly projectId: number;
-  private readonly planId: number;
+  private readonly planId?: number;
+  private readonly runId?: number;
   private readonly today: string;
   private suites: ReporterSuite[] = [];
   private testResults: TestRailResult[] = [];
@@ -44,6 +45,7 @@ export class TestRail {
 
     this.projectId = options.projectId;
     this.planId = options.planId;
+    this.runId = options.runId;
     this.today = format(new Date().getTime(), 'yyyy/MM/dd');
   }
 
@@ -52,13 +54,17 @@ export class TestRail {
   }
 
   public addFailedTest(caseId: number, test: Mocha.Test) {
-    const runId = this.findRunIdForCase(caseId);
+    const runId = this.runId ? this.runId : this.findRunIdForCase(caseId);
+
     if (runId) {
       console.log('- Add Failed Test: ', test.title);
+      const elapsed = this.getElapsedFromTest(test);
+
       this.testResults.push({
         case_id: caseId,
         status_id: Status.Failed,
         run_id: runId,
+        elapsed,
         comment: (test.err as Error).message,
       });
     } else {
@@ -67,12 +73,16 @@ export class TestRail {
   }
 
   public addPassedTest(caseId: number, test: Mocha.Test) {
-    const runId = this.findRunIdForCase(caseId);
+    const runId = this.runId ? this.runId : this.findRunIdForCase(caseId);
+
     if (runId) {
+      const elapsed = this.getElapsedFromTest(test);
+
       this.testResults.push({
         case_id: caseId,
         status_id: Status.Passed,
         run_id: runId,
+        elapsed,
         comment: `Execution time: ${test.duration}ms`,
       });
     } else {
@@ -102,18 +112,18 @@ export class TestRail {
         if (plan.entries && plan.entries.length) {
           runs = TestRail.flat(plan.entries.map(e => e.runs));
         }
-      }
 
-      if (!runs.length) {
-        runs = await this.createRuns();
-      }
+        if (!runs.length) {
+          runs = await this.createRuns();
+        }
 
-      for (const r of runs) {
-        this.suites.forEach(s => {
-          if (s.id === r.suite_id) {
-            s.runId = r.id;
-          }
-        });
+        for (const r of runs) {
+          this.suites.forEach(s => {
+            if (s.id === r.suite_id) {
+              s.runId = r.id;
+            }
+          });
+        }
       }
 
       await this.getCases();
@@ -131,16 +141,27 @@ export class TestRail {
     try {
       await Promise.all(addResultPromises);
       console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
-      console.log(
-        '\n',
-        ` - Results are published to ${chalk.magenta(
-          `https://${this.options.domain}/index.php?/runs/plan/${this.planId}`,
-        )}`,
-        '\n',
-      );
+
+      let publishedLink;
+
+      if (this.planId) {
+        publishedLink = `https://${this.options.domain}/index.php?/plans/view/${this.planId}`;
+      } else {
+        publishedLink = `https://${this.options.domain}/index.php?/runs/view/${this.runId}`;
+      }
+
+      console.log('\n', ` - Results are published to ${chalk.magenta(publishedLink)}`, '\n');
     } catch (e) {
       console.error(e);
     }
+  }
+
+  private getElapsedFromTest(test: Mocha.Test) {
+    if (!test.duration) {
+      return null;
+    }
+
+    return Math.ceil(test.duration / 1000) + 's';
   }
 
   private constructTestResult(): ConstructedTestResult {

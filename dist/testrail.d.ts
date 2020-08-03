@@ -4,7 +4,8 @@ export declare class TestRail {
     private options;
     private axiosInstance;
     private readonly projectId;
-    private readonly planId;
+    private readonly planId?;
+    private readonly runId?;
     private readonly today;
     private suites;
     private testResults;
@@ -14,6 +15,7 @@ export declare class TestRail {
     addPassedTest(caseId: number, test: Mocha.Test): void;
     constructSuites(): Promise<void>;
     publish(): Promise<void>;
+    private getElapsedFromTest;
     private constructTestResult;
     private findRunIdForCase;
     private createRuns;

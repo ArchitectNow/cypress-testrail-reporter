@@ -12,11 +12,11 @@ export default class CypressTestrailReporter extends reporters.Base {
     const reporterOptions = options.reporterOptions as TestRailOptions;
     CypressTestrailReporter.validate(reporterOptions);
 
-    if (!reporterOptions.planId) {
-      throw new Error('Required option `planId` missing reporterOptions.');
+    if (!reporterOptions.planId && !reporterOptions.runId) {
+      throw new Error('CypressTestRailReporter requires either `planId` or `runId` to be configured.');
     }
     if (!reporterOptions.projectId) {
-      throw new Error('Required option `projectId` missing reporterOptions.');
+      throw new Error('CypressTestRailReporter required `projectId` to be configured.');
     }
 
     this.testRail = new TestRail(reporterOptions);
@@ -32,6 +32,7 @@ export default class CypressTestrailReporter extends reporters.Base {
 
   private handleTest = (status: 'fail' | 'pass') => (test: Mocha.Test) => {
     const caseId = titleToCaseId(test.title);
+
     if (caseId) {
       status === 'fail' ? this.testRail.addFailedTest(caseId, test) : this.testRail.addPassedTest(caseId, test);
     }
