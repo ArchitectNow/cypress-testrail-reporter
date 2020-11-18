@@ -60,7 +60,7 @@
     "commitizen": "4.0.3",
     "cz-conventional-changelog": "3.1.0",
     "lint-staged": "10.0.8",
-    "semantic-release": "^17.0.0",
+    "semantic-release": "^17.2.3",
     "husky": "4.2.3",
     "tsdx": "0.12.2",
     "tslib": "1.11.1",
